@@ -1,5 +1,7 @@
 from markdown import markdown
 import nltk
+import numpy as np
+
 
 def print_question(closed, row, reason, contentCol):
     """ quickly summarizes the body of the question
@@ -22,7 +24,9 @@ def print_question(closed, row, reason, contentCol):
     tags = [closed[closed["OpenStatus"] == reason][contentCol[i]].iloc[row]
             for i in range(2, 7)]
     for tag in tags:
-        if tag != "NaN":
+        if type(tag) == unicode and tag != "NaN":
+            print "Tag : {0}".format(tag)
+        elif type(tag) == float and ~np.isnan(tag):
             print "Tag : {0}".format(tag)
 
 

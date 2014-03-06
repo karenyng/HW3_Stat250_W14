@@ -31,6 +31,14 @@ def print_question(closed, row, reason, contentCol):
             print "Tag : {0}".format(tag)
 
 
+def detect_code_from_html(df, code_word_num):
+    """ this should grab the <pre> and <code> tags and analyze the code in
+    between
+    """
+
+    return df
+
+
 def process_markdown(question):
     """ remove the markdown
     parameters
@@ -75,4 +83,6 @@ def get_timeStamp_and_compute_date_diff(df, date1, date2, dateDiff):
     return df
 
 
+def num_of_stop_words():
+    return
 

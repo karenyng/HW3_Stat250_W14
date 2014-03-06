@@ -6,9 +6,8 @@
 #======================================================================
 from __future__ import division
 import sys
-import nltk
 import pandas as pd
-#from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 # homebrewed module from path
 sys.path.append('../writeup/')
@@ -24,19 +23,12 @@ var = [dateDiff,
        "ReputationAtPostCreation",
        "OwnerUndeletedAnswerCountAtPostTime"]
 
-df = pd.read_csv(file, nrows=100)
+df = pd.read_csv(file)
 df = helper.get_timeStamp_and_compute_date_diff(df, date1, date2, dateDiff)
 
-# replace the markdown part in place by pure text
-# maybe compute the amount of code in the process
-df['BodyMarkdown'] = df['BodyMarkdown'].apply(helper.process_markdown)
-df['BodyWordTokens'] = df['BodyMarkdown'].apply(nltk.word_tokenize)
-# where should I do stemming???
-df['BodyPOS'] = df['BodyWordTokens'].apply(nltk.pos_tag)
-df['BodyStemmedWordCount'] = df['BodyWordTokens'].apply(len)
-
-# there does not seem to be any markdown in the title
-# directly compute word tokens and pos
-df['Title'] = df['Title'].apply(nltk.word_tokenize)
-TitlePOS = df['Title'].apply(nltk.pos_tag)
-df['TitleKeywords'] = pd.DataFrame(nltk.stem(TitlePOS))
+# initialize my random forest
+myForest = RandomForestClassifier(
+    n_estimators=int(df.shape[0] / 10),
+    criterion='gini',
+    max_features="sqrt"
+    )

@@ -1,6 +1,7 @@
 from markdown import markdown
 import nltk
 import numpy as np
+import pandas as pd
 
 
 def print_question(closed, row, reason, contentCol):
@@ -40,7 +41,38 @@ def process_markdown(question):
     ======
     cleaned = unicode string of pure text
     """
+    question = str.decode(question, 'utf-8')
     html = markdown(question)
     cleaned = nltk.clean_html(html)
+    # ad hoc solution for removing apostrophe
     cleaned = cleaned.translate({ord(u"\u2019"): ord(u"'")})
     return cleaned
+
+
+def get_timeStamp_and_compute_date_diff(df, date1, date2, dateDiff):
+    """ computes and returns date2 - date1 in days
+    Parameters
+    ==========
+    df = pandas dataframe
+    date1 = string
+        contains the column name of dates in format of strings
+    date2 = string
+        contains the column name of dates in format of strings
+    dateDiff = string
+        the column name containing results to be added to the df
+
+    Returns
+    =======
+    Altered df date1 and date2 column are now in format of timestamp
+    and a new column dateDiff
+    """
+    df[date2] = df[date2].apply(pd.Timestamp)
+    df[date1] = df[date1].apply(pd.Timestamp)
+    df[dateDiff] = df[date2] - df[date1]
+    df[dateDiff] = df[dateDiff].apply(float)
+    df[dateDiff] = np.round(np.abs(df[dateDiff] / 1e9 / 60. / 60. / 24.))
+
+    return df
+
+
+

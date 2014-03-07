@@ -1,3 +1,4 @@
+from __future__ import division
 from markdown import markdown
 import nltk
 import numpy as np
@@ -86,3 +87,19 @@ def get_timeStamp_and_compute_date_diff(df, date1, date2, dateDiff):
 def num_of_stop_words():
     return
 
+def question_percent_breakdown(df, reasons):
+    """print the percentage breakdown of the df
+    df = pandas dataframe
+    reasons = list of strings
+    """
+    total = df.shape[0]
+    print "-----------------------------------------------------------"
+    print "Closed percent: " + \
+        " {0}%".format(df[df["OpenStatus"] != "open"].shape[0] / total)
+
+    for reason in reasons:
+        print reason + " percent: " + \
+            " {0}%".format(df[df["OpenStatus"] != reason].shape[0] / total)
+    print "-----------------------------------------------------------"
+
+    return

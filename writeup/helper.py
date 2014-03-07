@@ -87,7 +87,8 @@ def get_timeStamp_and_compute_date_diff(df, date1, date2, dateDiff):
 def num_of_stop_words():
     return
 
-def question_percent_breakdown(df, reasons):
+
+def question_percent_breakdown(df, reasons, f=None):
     """print the percentage breakdown of the df
     df = pandas dataframe
     reasons = list of strings
@@ -95,11 +96,24 @@ def question_percent_breakdown(df, reasons):
     total = df.shape[0]
     print "-----------------------------------------------------------"
     print "Closed percent: " + \
-        " {0}%".format(df[df["OpenStatus"] != "open"].shape[0] / total)
+        " {0}%".format(df[df["OpenStatus"] != "open"].shape[0] / total *
+                       100)
 
     for reason in reasons:
         print reason + " percent: " + \
-            " {0}%".format(df[df["OpenStatus"] != reason].shape[0] / total)
-    print "-----------------------------------------------------------"
+            " {0}%".format(df[df["OpenStatus"] == reason].shape[0] /
+                           total * 100)
+    print "-----------------------------------------------------------\n"
+    if f is not None:
+        f.write("-----------------------------------------------------------\n")
+        f.write("Closed percent: " +
+                " {0}%".format(df[df["OpenStatus"] != "open"].shape[0] /
+                               total * 100) + "\n")
+
+        for reason in reasons:
+            f.write(reason + " percent: " +
+                    " {0}%".format(df[df["OpenStatus"] == reason].shape[0] /
+                                   total * 100) + "\n")
+        f.write("-----------------------------------------------------------\n")
 
     return

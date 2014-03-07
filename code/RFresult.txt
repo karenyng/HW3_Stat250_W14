@@ -1,0 +1,23 @@
+----------training data percent breakdown ----------
+Closed percent:  50.0%
+not constructive percent:  11.1633112809%
+off topic percent:  12.4971483974%
+not a real question percent:  21.9494981179%
+too localized percent:  4.39004220372%
+----------test data percent breakdown ----------
+Closed percent:  2.08086092149%
+not constructive percent:  0.46458596398%
+off topic percent:  0.520096554605%
+not a real question percent:  0.9134770576%
+too localized percent:  0.182701345309%
+------------------------------------------------
+OOB score : 0.999992870993
+Features summary :
+['postOwnerTimeDiff', 'ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerUserId', 'PostId']
+[ 0.16768932  0.151156    0.07653556  0.30061261  0.30400652]
+Overall PCC : 78.302746632%
+not constructive PCC : 100.0%
+off topic PCC : 100.0%
+not a real question PCC : 99.9967520868%
+too localized PCC : 100.0%
+open PCC : 77.8416927444%

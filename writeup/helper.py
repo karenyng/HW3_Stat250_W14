@@ -105,7 +105,6 @@ def question_percent_breakdown(df, reasons, f=None):
                            total * 100)
     print "-----------------------------------------------------------\n"
     if f is not None:
-        f.write("-----------------------------------------------------------\n")
         f.write("Closed percent: " +
                 " {0}%".format(df[df["OpenStatus"] != "open"].shape[0] /
                                total * 100) + "\n")
@@ -114,6 +113,5 @@ def question_percent_breakdown(df, reasons, f=None):
             f.write(reason + " percent: " +
                     " {0}%".format(df[df["OpenStatus"] == reason].shape[0] /
                                    total * 100) + "\n")
-        f.write("-----------------------------------------------------------\n")
 
     return

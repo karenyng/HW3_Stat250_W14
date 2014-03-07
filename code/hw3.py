@@ -70,7 +70,7 @@ f.write("binary classification or not = {0}\n".format(binaryClass))
 # ------ initialize my random forest--------------------------------------
 # some of the following input parameters for the RF might be ridiculous
 # I don't know how many trees to use so I try to build many
-n_estimators = int(train.shape[0] / 5e1)
+n_estimators = int(train.shape[0] / 5e2)
 f.write("no of tress = {0}\n".format(n_estimators))
 f.write("------------------------------------------------\n")
 print "No. of trees to be built = {0}\n".format(n_estimators)
@@ -106,24 +106,27 @@ else:
     test["result"] = \
         pd.DataFrame(test["RFclass"] == test["OpenStatus"].apply(hash))
 
-overallPCC = np.sum(test["result"]) / test.shape[0] * 100
-
-# PCC for different status
-allstatus = status + ["open"]
-PCC = []
-for status in allstatus:
-    if binaryClass is not True:
-        mask = test["OpenStatus"] == status
-    else:
-        mask = test["binaryStatus"] == helper.binaryStatusOrNot(status)
-    PCC.append(np.sum(test[mask]["result"]) / test[mask].shape[0] * 100)
+#overallPCC = np.sum(test["result"]) / test.shape[0] * 100
+#
+## PCC for different status
+#allstatus = status + ["open"]
+#PCC = []
+#for status in allstatus:
+#    if binaryClass is not True:
+#        mask = test["OpenStatus"] == status
+#    else:
+#        mask = test["binaryStatus"] == helper.binaryStatusOrNot(status)
+#    PCC.append(np.sum(test[mask]["result"]) / test[mask].shape[0] * 100)
 
 #-------------write out results -----------------------------
-f.write("OOB score : {0}\n".format(forest.score(X, y)))
+f.write("OOB score : {0}\n".format(forest.oob_score_))
 f.write("Features summary :\n")
 f.write("{0}\n".format(var))
 f.write("{0}\n".format(forest.feature_importances_))
-f.write("Overall PCC : {0}%\n".format(overallPCC))
-for i in range(len(allstatus)):
-    f.write(allstatus[i] + " PCC : {0}%\n".format(PCC[i]))
+f.write()
+f.write("mean accuracy : {0}\n".format(forest.score(test[var],
+                                                    test['binaryStatus'])))
+#f.write("Overall PCC : {0}%\n".format(overallPCC))
+#for i in range(len(allstatus)):
+#    f.write(allstatus[i] + " PCC : {0}%\n".format(PCC[i]))
 f.close()

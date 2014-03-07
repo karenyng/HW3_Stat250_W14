@@ -114,4 +114,10 @@ def question_percent_breakdown(df, reasons, f=None):
                     " {0}%".format(df[df["OpenStatus"] == reason].shape[0] /
                                    total * 100) + "\n")
 
+
+def binaryStatusOrNot(status):
+    if status == "open":
+        return 1
+    else:
+        return 0
     return

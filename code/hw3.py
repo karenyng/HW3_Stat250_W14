@@ -13,6 +13,7 @@ from sklearn.ensemble import RandomForestClassifier
 # homebrewed module from path
 sys.path.append('../writeup/')
 import helper
+import datetime
 
 #-----initialize values------------------------------------------------
 train_file = "../data/train-sample.csv"
@@ -20,15 +21,18 @@ test_file = "../data/train.csv"
 date1 = "OwnerCreationDate"
 date2 = "PostCreationDate"
 dateDiff = "postOwnerTimeDiff"
-output_file = "RFresult_5var"
+output_file = "RF_" + str(datetime.datetime.now()) + ".txt"
+
+criterion = 'gini'
+max_features = "sqrt"
+binaryClass = True
 
 # initialize list of strings of variables to be used for RF
 var = [dateDiff,
        "ReputationAtPostCreation",
        "OwnerUndeletedAnswerCountAtPostTime",
        "OwnerUserId",
-       "PostId"
-       ]
+       "PostId"]
 status = \
     ["not constructive", "off topic", "not a real question", "too localized"]
 
@@ -41,38 +45,52 @@ train = \
 test = \
     helper.get_timeStamp_and_compute_date_diff(test, date1, date2, dateDiff)
 
-train["binaryStatus"] = pd.DataFrame(np.zeros(train.shape[0]))
-train["binaryStatus"][train["OpenStatus"] == "open"] = 1
+if binaryClass is True:
+    train["binaryStatus"] = pd.DataFrame(np.zeros(train.shape[0]))
+    train["binaryStatus"][train["OpenStatus"] == "open"] = 1
+
+    test["binaryStatus"] = pd.DataFrame(np.zeros(test.shape[0]))
+    test["binaryStatus"][test["OpenStatus"] == "open"] = 1
 
 # it does not matter how the population of the training set look like
 # for a random forest but it is good to examine it
-f = open("RFresult.txt", 'w')
+f = open(output_file, 'w')
 f.write("----------training data percent breakdown ----------\n")
 helper.question_percent_breakdown(train, status, f)
+f.write("Number of training obs = {0}\n".format(train.shape[0]))
 f.write("----------test data percent breakdown ----------\n")
+f.write("Number of testing obs = {0}\n".format(test.shape[0]))
 helper.question_percent_breakdown(test, status, f)
 f.write("------------------------------------------------\n")
+f.write("--------input params----------------------------\n")
+f.write("criterion for split = {0}\n".format(criterion))
+f.write("max_features to be used for split = {0}\n".format(max_features))
+f.write("binary classification or not = {0}\n".format(binaryClass))
 
 # ------ initialize my random forest--------------------------------------
 # some of the following input parameters for the RF might be ridiculous
 # I don't know how many trees to use so I try to build many
-n_estimators = int(train.shape[0] / 1e3)
-print "No. of trees to be built = {0}".format(n_estimators)
+n_estimators = int(train.shape[0] / 5e1)
+f.write("no of tress = {0}\n".format(n_estimators))
+f.write("------------------------------------------------\n")
+print "No. of trees to be built = {0}\n".format(n_estimators)
+
 
 myForest = \
     RandomForestClassifier(n_estimators=n_estimators,
-                           criterion='gini',
-                           max_features="sqrt",  # features = variables
-                           bootstrap=True,
+                           criterion=criterion,
+                           max_features=max_features,  # features = variables
                            oob_score=True,
                            n_jobs=4,
                            verbose=1)
 
 # ------data to be used for building the tree----------------
+# subset the training dataframe so that only specified variables
+# get passed as input for building the forest
 X = train[var]
-#y = train["binaryStatus"]
+y = train["binaryStatus"]
 # the random forest algorithm only likes integer that indicate categories
-y = train["OpenStatus"].apply(hash)
+#y = train["OpenStatus"].apply(hash)
 forest = myForest.fit(X, y)
 
 #--------prediction time-------------------------------------
@@ -81,8 +99,12 @@ test["RFclass"] = pd.DataFrame(forest.predict(test[var]))
 #-------performance statistics ------------------------------
 # compute if the prediction is correct or not
 # if the two predicted class, the corresponding entry of "result" would be 1
-test["result"] = \
-    pd.DataFrame(test["RFclass"] == test["OpenStatus"].apply(hash))
+if binaryClass is True:
+    test["result"] = \
+        pd.DataFrame(test["RFclass"] == test["binaryStatus"])
+else:
+    test["result"] = \
+        pd.DataFrame(test["RFclass"] == test["OpenStatus"].apply(hash))
 
 overallPCC = np.sum(test["result"]) / test.shape[0] * 100
 
@@ -90,7 +112,10 @@ overallPCC = np.sum(test["result"]) / test.shape[0] * 100
 allstatus = status + ["open"]
 PCC = []
 for status in allstatus:
-    mask = test["OpenStatus"] == status
+    if binaryClass is not True:
+        mask = test["OpenStatus"] == status
+    else:
+        mask = test["binaryStatus"] == helper.binaryStatusOrNot(status)
     PCC.append(np.sum(test[mask]["result"]) / test[mask].shape[0] * 100)
 
 #-------------write out results -----------------------------

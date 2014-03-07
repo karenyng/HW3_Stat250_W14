@@ -16,16 +16,16 @@ import helper
 import datetime
 
 #-----initialize values------------------------------------------------
-train_file = "../data/train-sample.csv"
-test_file = "../data/train.csv"
+train_file = "../data/train-sample-datediff.csv"
+test_file = "../data/train-datediff.csv"
 date1 = "OwnerCreationDate"
 date2 = "PostCreationDate"
 dateDiff = "postOwnerTimeDiff"
-output_file = "RF_" + str(datetime.datetime.now()) + ".txt"
+output_file = "RF_" + str(datetime.datetime.now())[:16] + ".txt"
 
 criterion = 'gini'
 max_features = "sqrt"
-binaryClass = True
+binaryClass = False
 
 # initialize list of strings of variables to be used for RF
 var = [dateDiff,
@@ -40,10 +40,10 @@ status = \
 # read in and preprocess data
 train = pd.read_csv(train_file)
 test = pd.read_csv(test_file)
-train = \
-    helper.get_timeStamp_and_compute_date_diff(train, date1, date2, dateDiff)
-test = \
-    helper.get_timeStamp_and_compute_date_diff(test, date1, date2, dateDiff)
+#train = \
+#    helper.get_timeStamp_and_compute_date_diff(train, date1, date2, dateDiff)
+#test = \
+#    helper.get_timeStamp_and_compute_date_diff(test, date1, date2, dateDiff)
 
 if binaryClass is True:
     train["binaryStatus"] = pd.DataFrame(np.zeros(train.shape[0]))
@@ -71,7 +71,7 @@ f.write("binary classification or not = {0}\n".format(binaryClass))
 # some of the following input parameters for the RF might be ridiculous
 # I don't know how many trees to use so I try to build many
 n_estimators = int(train.shape[0] / 5e2)
-f.write("no of tress = {0}\n".format(n_estimators))
+f.write("no of trees = {0}\n".format(n_estimators))
 f.write("------------------------------------------------\n")
 print "No. of trees to be built = {0}\n".format(n_estimators)
 
@@ -88,9 +88,11 @@ myForest = \
 # subset the training dataframe so that only specified variables
 # get passed as input for building the forest
 X = train[var]
-y = train["binaryStatus"]
 # the random forest algorithm only likes integer that indicate categories
-#y = train["OpenStatus"].apply(hash)
+if binaryClass is True:
+    y = train["binaryStatus"]
+else:
+    y = train["OpenStatus"].apply(hash)
 forest = myForest.fit(X, y)
 
 #--------prediction time-------------------------------------
@@ -106,27 +108,31 @@ else:
     test["result"] = \
         pd.DataFrame(test["RFclass"] == test["OpenStatus"].apply(hash))
 
-#overallPCC = np.sum(test["result"]) / test.shape[0] * 100
-#
-## PCC for different status
-#allstatus = status + ["open"]
-#PCC = []
-#for status in allstatus:
-#    if binaryClass is not True:
-#        mask = test["OpenStatus"] == status
-#    else:
-#        mask = test["binaryStatus"] == helper.binaryStatusOrNot(status)
-#    PCC.append(np.sum(test[mask]["result"]) / test[mask].shape[0] * 100)
+overallPCC = np.sum(test["result"]) / test.shape[0] * 100
+
+# PCC for different status
+allstatus = status + ["open"]
+PCC = []
+for status in allstatus:
+    if binaryClass is not True:
+        mask = test["OpenStatus"] == status
+    else:
+        mask = test["binaryStatus"] == helper.binaryStatusOrNot(status)
+    PCC.append(np.sum(test[mask]["result"]) / test[mask].shape[0] * 100)
 
 #-------------write out results -----------------------------
 f.write("OOB score : {0}\n".format(forest.oob_score_))
 f.write("Features summary :\n")
 f.write("{0}\n".format(var))
 f.write("{0}\n".format(forest.feature_importances_))
-f.write()
-f.write("mean accuracy : {0}\n".format(forest.score(test[var],
-                                                    test['binaryStatus'])))
-#f.write("Overall PCC : {0}%\n".format(overallPCC))
-#for i in range(len(allstatus)):
-#    f.write(allstatus[i] + " PCC : {0}%\n".format(PCC[i]))
+if binaryClass is True:
+    f.write("mean accuracy : {0}\n".format(
+        forest.score(test[var], test['binaryStatus'])))
+else:
+    f.write("mean accuracy : {0}\n".format(
+        forest.score(test[var], test['OpenStatus'].apply(hash))))
+
+f.write("Overall PCC : {0}%\n".format(overallPCC))
+for i in range(len(allstatus)):
+    f.write(allstatus[i] + " PCC : {0}%\n".format(PCC[i]))
 f.close()

@@ -24,7 +24,7 @@ dateDiff = "postOwnerTimeDiff"
 output_file = "RF_" + str(datetime.datetime.now())[:16] + ".txt"
 
 criterion = 'gini'
-max_features = "sqrt"
+max_features = None
 binaryClass = False
 
 # initialize list of strings of variables to be used for RF
@@ -39,7 +39,7 @@ status = \
 #----------------------------------------------------------------------
 # read in and preprocess data
 train = pd.read_csv(train_file)
-test = pd.read_csv(test_file)
+test = pd.read_csv(test_file, nrows=train.shape[0])
 #train = \
 #    helper.get_timeStamp_and_compute_date_diff(train, date1, date2, dateDiff)
 #test = \
@@ -70,7 +70,7 @@ f.write("binary classification or not = {0}\n".format(binaryClass))
 # ------ initialize my random forest--------------------------------------
 # some of the following input parameters for the RF might be ridiculous
 # I don't know how many trees to use so I try to build many
-n_estimators = int(train.shape[0] / 5e2)
+n_estimators = int(train.shape[0] / 1e2)
 f.write("no of trees = {0}\n".format(n_estimators))
 f.write("------------------------------------------------\n")
 print "No. of trees to be built = {0}\n".format(n_estimators)
@@ -81,6 +81,7 @@ myForest = \
                            criterion=criterion,
                            max_features=max_features,  # features = variables
                            oob_score=True,
+                           bootstrap=True,
                            n_jobs=4,
                            verbose=1)
 
